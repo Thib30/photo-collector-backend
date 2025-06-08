@@ -63,11 +63,20 @@ app.get('/data', async (req, res) => {
       headers: { Authorization: `Bearer ${TOKEN}` }
     });
 
-    if (githubResponse.status === 404) {
+    if (!githubResponse.ok) {
+      console.error(`❌ GitHub API error: ${githubResponse.status} ${githubResponse.statusText}`);
       return res.json({ messages: [], photos: [] });
     }
 
     const current = await githubResponse.json();
+
+    console.log('GitHub API response:', current); // 🧪 à surveiller dans les logs
+
+    if (!current.content) {
+      console.warn('⚠️ Aucun champ "content" dans la réponse GitHub');
+      return res.json({ messages: [], photos: [] });
+    }
+
     const contentDecoded = Buffer.from(current.content, 'base64').toString();
     const messages = JSON.parse(contentDecoded);
 
@@ -77,6 +86,7 @@ app.get('/data', async (req, res) => {
     res.status(500).json({ error: 'Erreur chargement' });
   }
 });
+
 
 
 const PORT = process.env.PORT || 3000;
