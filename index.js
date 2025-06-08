@@ -14,45 +14,75 @@ const FILE_PATH = 'data/messages.json'
 const GITHUB_API = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`
 const TOKEN = process.env.GITHUB_TOKEN
 
-app.post('/add-message', async (req,res) => {
-  const newMessage = req.body
+app.post('/save', async (req, res) => {
   try {
-    // Lire le fichier actuel
-    const current = await fetch(GITHUB_API, {
+    console.log("➡️ POST /save reçu");
+
+    const messages = req.body.messages || [];
+    const photos = req.body.photos || [];
+
+    // --- messages.json ---
+    const currentMessages = await fetch(GITHUB_API, {
       headers: { Authorization: `Bearer ${TOKEN}` }
-    }).then(res => res.json())
+    }).then(res => res.json());
 
-    const contentDecoded = Buffer.from(current.content, 'base64').toString()
-    const messages = JSON.parse(contentDecoded)
-    messages.push(newMessage)
+    const encodedMessages = Buffer.from(JSON.stringify(messages, null, 2)).toString('base64');
 
-    const updatedContent = Buffer.from(JSON.stringify(messages, null, 2)).toString('base64')
-
-    // Mettre à jour le fichier sur GitHub
-    const response = await fetch(GITHUB_API, {
+    await fetch(GITHUB_API, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: 'Ajout automatique via formulaire',
-        content: updatedContent,
-        sha: current.sha,
+        message: 'Mise à jour des messages',
+        content: encodedMessages,
+        sha: currentMessages.sha,
         committer: {
           name: 'Thibault Ginolin',
           email: 'thibault@example.com'
         }
       })
-    })
+    });
 
-    const result = await response.json()
-    res.json({ success: true, result })
+    console.log("✅ messages.json sauvegardé. Enregistrement de photos.json...");
+
+    // --- photos.json ---
+    const photosUrl = GITHUB_API.replace('messages.json', 'photos.json');
+    const currentPhotos = await fetch(photosUrl, {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    }).then(res => res.json());
+
+    console.log("📸 Sauvegarde photos.json avec", photos.length, "photos");
+    console.log("🔍 photos à sauvegarder :", photos);
+
+    const encodedPhotos = Buffer.from(JSON.stringify(photos, null, 2)).toString('base64');
+
+    await fetch(photosUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Mise à jour des photos',
+        content: encodedPhotos,
+        sha: currentPhotos.sha,
+        committer: {
+          name: 'Thibault Ginolin',
+          email: 'thibault@example.com'
+        }
+      })
+    });
+
+    res.json({ success: true });
+
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Erreur lors de l’ajout' })
+    console.error('❌ Erreur /save :', err);
+    res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
   }
-})
+});
+
 
 
 
