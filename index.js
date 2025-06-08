@@ -54,6 +54,32 @@ app.post('/add-message', async (req, res) => {
   }
 })
 
+// ... tout ton code précédent ...
+
+// Nouvelle route : GET /data
+app.get('/data', async (req, res) => {
+  try {
+    const current = await fetch(GITHUB_API, {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    }).then(res => res.json())
+
+    const contentDecoded = Buffer.from(current.content, 'base64').toString()
+    const messages = JSON.parse(contentDecoded)
+
+    res.json({
+      messages,
+      photos: []
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Erreur chargement' })
+  }
+})
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Serveur en ligne sur http://localhost:${PORT}`);
+});
 
 
 const PORT = process.env.PORT || 3000;
