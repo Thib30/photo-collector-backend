@@ -89,18 +89,18 @@ app.get('/data', async (req, res) => {
 
 app.post('/save', async (req, res) => {
   try {
-    const { messages, photos } = req.body;
+    const messages = req.body.messages || [];
+    const photos = req.body.photos || [];
 
-    // --- Sauvegarde des messages.json ---
+    // --- Mise à jour de messages.json ---
     const messagesRes = await fetch(GITHUB_API, {
       headers: { Authorization: `Bearer ${TOKEN}` }
     });
-
     const messagesFile = await messagesRes.json();
 
     const messagesEncoded = Buffer.from(JSON.stringify(messages, null, 2)).toString('base64');
 
-    const messagesUpdate = await fetch(GITHUB_API, {
+    await fetch(GITHUB_API, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${TOKEN}`,
@@ -117,18 +117,16 @@ app.post('/save', async (req, res) => {
       })
     });
 
-    // --- Sauvegarde des photos.json ---
+    // --- Mise à jour de photos.json ---
     const photosUrl = GITHUB_API.replace('messages.json', 'photos.json');
-
     const photosRes = await fetch(photosUrl, {
       headers: { Authorization: `Bearer ${TOKEN}` }
     });
-
     const photosFile = await photosRes.json();
 
     const photosEncoded = Buffer.from(JSON.stringify(photos, null, 2)).toString('base64');
 
-    const photosUpdate = await fetch(photosUrl, {
+    await fetch(photosUrl, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${TOKEN}`,
@@ -151,6 +149,7 @@ app.post('/save', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
   }
 });
+
 
 
 const PORT = process.env.PORT || 3000;
