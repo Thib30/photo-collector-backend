@@ -54,28 +54,30 @@ app.post('/add-message', async (req, res) => {
   }
 })
 
-// ... tout ton code précédent ...
+
 
 // Nouvelle route : GET /data
 app.get('/data', async (req, res) => {
   try {
-    const current = await fetch(GITHUB_API, {
+    const githubResponse = await fetch(GITHUB_API, {
       headers: { Authorization: `Bearer ${TOKEN}` }
-    }).then(res => res.json())
+    });
 
-    const contentDecoded = Buffer.from(current.content, 'base64').toString()
-    const messages = JSON.parse(contentDecoded)
+    if (githubResponse.status === 404) {
+      return res.json({ messages: [], photos: [] });
+    }
 
-    res.json({
-      messages,
-      photos: []
-    })
+    const current = await githubResponse.json();
+    const contentDecoded = Buffer.from(current.content, 'base64').toString();
+    const messages = JSON.parse(contentDecoded);
+
+    res.json({ messages, photos: [] });
   } catch (err) {
-    console.log('❌ Erreur réelle :', err)
-    console.error(err)
-    res.status(500).json({ error: 'Erreur chargement' })
+    console.error('❌ Erreur réelle :', err);
+    res.status(500).json({ error: 'Erreur chargement' });
   }
-})
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
