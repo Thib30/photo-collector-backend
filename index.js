@@ -71,6 +71,7 @@ app.get('/data', async (req, res) => {
       photos: []
     })
   } catch (err) {
+    console.log('❌ Erreur réelle :', err)
     console.error(err)
     res.status(500).json({ error: 'Erreur chargement' })
   }
