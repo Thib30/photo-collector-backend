@@ -7,14 +7,14 @@ import { Buffer } from 'buffer'
 config()
 const app = express()
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '10mb' })); // ou '20mb' si besoin
 
 const REPO = 'Thib30/photo-collector'
 const FILE_PATH = 'data/messages.json'
 const GITHUB_API = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`
 const TOKEN = process.env.GITHUB_TOKEN
 
-app.post('/add-message', async (req, res) => {
+app.post('/add-message', async (req,res) => {
   const newMessage = req.body
   try {
     // Lire le fichier actuel
