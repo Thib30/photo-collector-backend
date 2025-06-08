@@ -87,69 +87,7 @@ app.get('/data', async (req, res) => {
   }
 });
 
-app.post('/save', async (req, res) => {
-  try {
-    const messages = req.body.messages || [];
-    const photos = req.body.photos || [];
-
-    // --- Mise à jour de messages.json ---
-    const messagesRes = await fetch(GITHUB_API, {
-      headers: { Authorization: `Bearer ${TOKEN}` }
-    });
-    const messagesFile = await messagesRes.json();
-
-    const messagesEncoded = Buffer.from(JSON.stringify(messages, null, 2)).toString('base64');
-
-    await fetch(GITHUB_API, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: 'Mise à jour des messages',
-        content: messagesEncoded,
-        sha: messagesFile.sha,
-        committer: {
-          name: 'Thibault Ginolin',
-          email: 'thibault@example.com'
-        }
-      })
-    });
-
-    // --- Mise à jour de photos.json ---
-    const photosUrl = GITHUB_API.replace('messages.json', 'photos.json');
-    const photosRes = await fetch(photosUrl, {
-      headers: { Authorization: `Bearer ${TOKEN}` }
-    });
-    const photosFile = await photosRes.json();
-
-    const photosEncoded = Buffer.from(JSON.stringify(photos, null, 2)).toString('base64');
-
-    await fetch(photosUrl, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: 'Mise à jour des photos',
-        content: photosEncoded,
-        sha: photosFile.sha,
-        committer: {
-          name: 'Thibault Ginolin',
-          email: 'thibault@example.com'
-        }
-      })
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('❌ Erreur /save :', err);
-    res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
-  }
-});
-
+console.log("✅ messages.json sauvegardé. Enregistrement de photos.json...");
 
 
 const PORT = process.env.PORT || 3000;
